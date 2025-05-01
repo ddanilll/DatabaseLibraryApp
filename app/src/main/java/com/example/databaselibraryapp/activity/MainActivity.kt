@@ -210,25 +210,29 @@ class MainActivity : AppCompatActivity(), InfoFragment.OnItemCreatedListener,
         setupFragments()
     }
 
-    private val prefs by lazy {
-        getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-    }
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.sort_menu, menu)
+        val currentSort = viewModel.getCurrentSort()
+        menu.findItem(R.id.sort_name).isChecked = (currentSort == SORT_BY_NAME)
+        menu.findItem(R.id.sort_date).isChecked = (currentSort == SORT_BY_DATE)
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.sort_name -> {
-                prefs.edit().putString(SORT_PREF, SORT_BY_NAME).apply()
-                viewModel.updateSort(SORT_BY_NAME)
+                if (!item.isChecked) { // Предотвратить повторную загрузку
+                    viewModel.updateSort(SORT_BY_NAME)
+                    item.isChecked = true
+                    invalidateOptionsMenu()
+                }
             }
-
             R.id.sort_date -> {
-                prefs.edit().putString(SORT_PREF, SORT_BY_DATE).apply()
-                viewModel.updateSort(SORT_BY_DATE)
+                if (!item.isChecked) {
+                    viewModel.updateSort(SORT_BY_DATE)
+                    item.isChecked = true
+                    invalidateOptionsMenu()
+                }
             }
         }
         return true

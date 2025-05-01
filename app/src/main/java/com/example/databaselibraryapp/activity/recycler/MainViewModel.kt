@@ -1,11 +1,13 @@
 package com.example.databaselibraryapp.activity.recycler
 
 import android.app.Application
+import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.databaselibraryapp.activity.AppDatabase
 import com.example.databaselibraryapp.activity.ItemEntity
 import com.example.databaselibraryapp.activity.MainActivity.Companion.SORT_BY_NAME
+import com.example.databaselibraryapp.activity.MainActivity.Companion.SORT_PREF
 import com.example.databaselibraryapp.activity.recycler.LibraryFragment.Companion.BOOK
 import com.example.databaselibraryapp.activity.recycler.LibraryFragment.Companion.DISK
 import com.example.databaselibraryapp.activity.recycler.LibraryFragment.Companion.NEWSPAPER
@@ -27,10 +29,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _state = MutableStateFlow<State>(State.Loading)
     val state: StateFlow<State> = _state.asStateFlow()
 
+    companion object {
+        const val currentLimit = 24
+    }
+
     private var currentOffset = 0
-    private var currentLimit = 24
     private var currentSort = SORT_BY_NAME
     private var totalItems = 0
+
+    private val prefs = application.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
 
     fun resetScrollPosition() {
         viewModelScope.launch {
@@ -40,13 +47,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateSort(sortType: String) {
         viewModelScope.launch {
+            prefs.edit().putString(SORT_PREF, sortType).apply()
+
             currentSort = sortType
             currentOffset = 0
             loadInitialData()
         }
     }
 
+    fun getCurrentSort(): String = currentSort
+
     init {
+        currentSort = getCurrentSort()
         loadInitialData()
     }
 
